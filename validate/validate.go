@@ -18,30 +18,50 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/go-multierror"
 )
 
-var validatorInstance *validator.Validate
+type FormatErrorFunc func(target interface{}, err validator.FieldError) string
 
-func init() {
-	validatorInstance = validator.New()
-	validatorInstance.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("name"), ",", 2)[0]
-		if name == "" {
-			// nameタグがない場合はyamlタグを参照
-			name = strings.SplitN(fld.Tag.Get("yaml"), ",", 2)[0]
-		}
-		if name == "-" {
-			return ""
-		}
-		return name
-	})
+type Validator struct {
+	FormatErrorFuncMap map[string]FormatErrorFunc
+
+	instance *validator.Validate
+	initOnce sync.Once
 }
 
-func validate(v interface{}) error {
-	return validatorInstance.Struct(v)
+func New() *Validator {
+	v := &Validator{
+		FormatErrorFuncMap: map[string]FormatErrorFunc{
+			"file": func(_ interface{}, err validator.FieldError) string {
+				return fmt.Sprintf("invalid file path: %v", err.Value())
+			},
+		},
+	}
+	v.init()
+	return v
+}
+
+func (v *Validator) init() {
+	v.initOnce.Do(func() {
+		if v.instance == nil {
+			v.instance = validator.New()
+		}
+		v.instance.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("name"), ",", 2)[0]
+			if name == "" {
+				// nameタグがない場合はyamlタグを参照
+				name = strings.SplitN(fld.Tag.Get("yaml"), ",", 2)[0]
+			}
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	})
 }
 
 // RegisterCollectionValidator 要素/コレクションを示す単数名/複数名に対しそれぞれoneof/diveエイリアスを登録する
@@ -49,14 +69,18 @@ func validate(v interface{}) error {
 // ("zone", "zones", []string{"v1", "v2"}) とした場合、以下のエイリアスがバリデーターに登録される
 //   - "zone"  => "oneof=v1 v2"のエイリアス
 //   - "zones" => "dive,zone"のエイリアス
-func RegisterCollectionValidator(singularName, pluralName string, allowedValues []string) {
-	validatorInstance.RegisterAlias(singularName, fmt.Sprintf("oneof=%s", strings.Join(allowedValues, " ")))
-	validatorInstance.RegisterAlias(pluralName, fmt.Sprintf("dive,%s", singularName))
+func (v *Validator) RegisterCollectionValidator(singularName, pluralName string, allowedValues []string) {
+	v.init()
+
+	v.instance.RegisterAlias(singularName, fmt.Sprintf("oneof=%s", strings.Join(allowedValues, " ")))
+	v.instance.RegisterAlias(pluralName, fmt.Sprintf("dive,%s", singularName))
 }
 
 // Struct 対象structを検証しerrorを返す
-func Struct(v interface{}) error {
-	errors := StructWithMultiError(v)
+func (v *Validator) Struct(value interface{}) error {
+	v.init()
+
+	errors := v.StructWithMultiError(value)
 	if errors != nil {
 		return errors.ErrorOrNil()
 	}
@@ -64,8 +88,10 @@ func Struct(v interface{}) error {
 }
 
 // StructWithMultiError 対象structを検証し、*multierror.Errorを返す
-func StructWithMultiError(v interface{}) *multierror.Error {
-	err := validate(v)
+func (v *Validator) StructWithMultiError(value interface{}) *multierror.Error {
+	v.init()
+
+	err := v.instance.Struct(value)
 	if err != nil {
 		if err != nil {
 			// see https://github.com/go-playground/validator/blob/f6584a41c8acc5dfc0b62f7962811f5231c11530/_examples/simple/main.go#L59-L65
@@ -75,7 +101,7 @@ func StructWithMultiError(v interface{}) *multierror.Error {
 
 			errors := &multierror.Error{}
 			for _, err := range err.(validator.ValidationErrors) {
-				errors = multierror.Append(errors, errorFromValidationErr(v, err))
+				errors = multierror.Append(errors, v.errorFromValidationErr(v, err))
 			}
 			return errors
 		}
@@ -84,7 +110,7 @@ func StructWithMultiError(v interface{}) *multierror.Error {
 	return nil
 }
 
-func errorFromValidationErr(target interface{}, err validator.FieldError) error {
+func (v *Validator) errorFromValidationErr(target interface{}, err validator.FieldError) error {
 	namespaces := strings.Split(err.Namespace(), ".")
 	actualName := namespaces[len(namespaces)-1] // .で区切った末尾の要素
 
@@ -94,15 +120,16 @@ func errorFromValidationErr(target interface{}, err validator.FieldError) error 
 		detail += "=" + param
 	}
 
-	// detailがvalidatorのタグ名だけの場合の対応をここで行う。
-	switch detail {
-	case "file":
-		detail = fmt.Sprintf("invalid file path: %v", err.Value())
-	}
-
-	return newError(actualName, detail)
+	return v.newError(actualName, v.formatErrorDetail(detail, target, err))
 }
 
-func newError(name, message string) error {
+func (v *Validator) formatErrorDetail(detail string, target interface{}, err validator.FieldError) string {
+	if fn, ok := v.FormatErrorFuncMap[detail]; ok {
+		return fn(target, err)
+	}
+	return detail
+}
+
+func (v *Validator) newError(name, message string) error {
 	return fmt.Errorf("%s: %s", name, message)
 }
