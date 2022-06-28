@@ -157,7 +157,7 @@ func AddressCount(network *net.IPNet) uint64 {
 
 // VerifyNoOverlap takes a list subnets and supernet (CIDRBlock) and verifies
 // none of the subnets overlap and all subnets are in the supernet
-//it returns an error if any of those conditions are not satisfied
+// it returns an error if any of those conditions are not satisfied
 func VerifyNoOverlap(subnets []*net.IPNet, cidrBlock *net.IPNet) error {
 	firstLastIP := make([][]net.IP, len(subnets))
 	for i, s := range subnets {
