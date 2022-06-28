@@ -155,18 +155,18 @@ func AddressCount(network *net.IPNet) uint64 {
 	return 1 << (uint64(bits) - uint64(prefixLen))
 }
 
-//VerifyNoOverlap takes a list subnets and supernet (CIDRBlock) and verifies
-//none of the subnets overlap and all subnets are in the supernet
+// VerifyNoOverlap takes a list subnets and supernet (CIDRBlock) and verifies
+// none of the subnets overlap and all subnets are in the supernet
 //it returns an error if any of those conditions are not satisfied
-func VerifyNoOverlap(subnets []*net.IPNet, CIDRBlock *net.IPNet) error {
+func VerifyNoOverlap(subnets []*net.IPNet, cidrBlock *net.IPNet) error {
 	firstLastIP := make([][]net.IP, len(subnets))
 	for i, s := range subnets {
 		first, last := AddressRange(s)
 		firstLastIP[i] = []net.IP{first, last}
 	}
 	for i, s := range subnets {
-		if !CIDRBlock.Contains(firstLastIP[i][0]) || !CIDRBlock.Contains(firstLastIP[i][1]) {
-			return fmt.Errorf("%s does not fully contain %s", CIDRBlock.String(), s.String())
+		if !cidrBlock.Contains(firstLastIP[i][0]) || !cidrBlock.Contains(firstLastIP[i][1]) {
+			return fmt.Errorf("%s does not fully contain %s", cidrBlock.String(), s.String())
 		}
 		for j := 0; j < len(subnets); j++ {
 			if i == j {
@@ -215,11 +215,11 @@ func NextSubnet(network *net.IPNet, prefixLen int) (*net.IPNet, bool) {
 	return next, false
 }
 
-//Inc increases the IP by one this returns a new []byte for the IP
-func Inc(IP net.IP) net.IP {
-	IP = checkIPv4(IP)
-	incIP := make([]byte, len(IP))
-	copy(incIP, IP)
+// Inc increases the IP by one this returns a new []byte for the IP
+func Inc(ip net.IP) net.IP {
+	ip = checkIPv4(ip)
+	incIP := make([]byte, len(ip))
+	copy(incIP, ip)
 	for j := len(incIP) - 1; j >= 0; j-- {
 		incIP[j]++
 		if incIP[j] > 0 {
@@ -229,11 +229,11 @@ func Inc(IP net.IP) net.IP {
 	return incIP
 }
 
-//Dec decreases the IP by one this returns a new []byte for the IP
-func Dec(IP net.IP) net.IP {
-	IP = checkIPv4(IP)
-	decIP := make([]byte, len(IP))
-	copy(decIP, IP)
+// Dec decreases the IP by one this returns a new []byte for the IP
+func Dec(ip net.IP) net.IP {
+	ip = checkIPv4(ip)
+	decIP := make([]byte, len(ip))
+	copy(decIP, ip)
 	decIP = checkIPv4(decIP)
 	for j := len(decIP) - 1; j >= 0; j-- {
 		decIP[j]--
@@ -255,7 +255,7 @@ func checkIPv4(ip net.IP) net.IP {
 func ipToInt(ip net.IP) (*big.Int, int) {
 	val := &big.Int{}
 	val.SetBytes([]byte(ip))
-	if len(ip) == net.IPv4len {
+	if len(ip) == net.IPv4len { // nolint: gocritic
 		return val, 32
 	} else if len(ip) == net.IPv6len {
 		return val, 128
