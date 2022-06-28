@@ -25,7 +25,7 @@ var NewsFeedURL = "https://secure.sakura.ad.jp/rss/sakuranews/getfeeds.php?forma
 
 // Get ニュースフィード(障害/メンテナンス情報)を取得
 func Get() (FeedItems, error) {
-	resp, err := http.Get(NewsFeedURL)
+	resp, err := http.Get(NewsFeedURL) // nolint: gosec
 	if err != nil {
 		return nil, err
 	}
