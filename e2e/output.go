@@ -26,25 +26,41 @@ import (
 )
 
 type Output struct {
+	reader     io.Reader
+	prefix     string
 	oldOutputs []string
 	outputs    []string
 	mu         sync.Mutex
+
+	collectOnce sync.Once
 }
 
-// CollectOutputs 指定のリーダーをスキャンし、結果を出力バッファにコピーし続ける
-func (o *Output) CollectOutputs(prefix string, reader io.ReadCloser) {
-	scanner := bufio.NewScanner(reader)
+func NewOutput(reader io.Reader, logPrefix string) *Output {
+	return &Output{reader: reader, prefix: logPrefix}
+}
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		o.mu.Lock()
-		o.outputs = append(o.outputs, prefix+" "+line)
-		o.mu.Unlock()
-	}
+// StartCollect 指定のリーダーをスキャンし、結果を出力バッファにコピーし続ける
+func (o *Output) startCollect() {
+	o.collectOnce.Do(func() {
+		go func() {
+			scanner := bufio.NewScanner(o.reader)
+			for scanner.Scan() {
+				line := scanner.Text()
+				o.mu.Lock()
+				if o.prefix != "" {
+					line = o.prefix + " " + line
+				}
+				o.outputs = append(o.outputs, line)
+				o.mu.Unlock()
+			}
+		}()
+	})
 }
 
 // WaitOutput 出力バッファの中に指定の文字が現れるまで待つ
 func (o *Output) WaitOutput(substr string, timeout time.Duration) error {
+	o.startCollect()
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 

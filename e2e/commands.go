@@ -15,9 +15,41 @@
 package e2e
 
 import (
+	"io"
 	"os/exec"
 	"testing"
 )
+
+func StartCommand(t *testing.T, command string, args ...string) error {
+	_, err := StartCommandWithStdErr(t, command, args...)
+	return err
+}
+
+func StartCommandWithStdOut(t *testing.T, command string, args ...string) (io.Reader, error) {
+	cmd := runCommand(t, command, args...)
+	stdOut, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	return stdOut, nil
+}
+
+func StartCommandWithStdErr(t *testing.T, command string, args ...string) (io.Reader, error) {
+	cmd := runCommand(t, command, args...)
+	stdErr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	return stdErr, nil
+}
 
 func RunCommand(t *testing.T, command string, args ...string) error {
 	return runCommand(t, command, args...).Run()

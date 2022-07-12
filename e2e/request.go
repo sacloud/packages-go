@@ -17,22 +17,30 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
 
 // HttpGet 指定のURLにGETでリクエストを行い、ステータスコード200以外の場合はエラーを返す
 func HttpGet(url string) error {
+	_, err := HttpGetWithResponse(url)
+	return err
+}
+
+// HttpGetWithResponse 指定のURLにGETでリクエストを行い、ステータスコード200以外の場合はエラーを返す
+func HttpGetWithResponse(url string) ([]byte, error) {
 	res, err := http.Get(url) // nolint
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("got unexpected status code: %d", res.StatusCode)
+		return nil, fmt.Errorf("got unexpected status code: %d", res.StatusCode)
 	}
-	return nil
+
+	return io.ReadAll(res.Body)
 }
 
 // HttpRequestUntilSuccess ステータス200が返ってくるまで定期的に指定のURLにGETでリクエストを行う
