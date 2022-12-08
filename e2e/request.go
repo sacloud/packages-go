@@ -30,7 +30,7 @@ func HttpGet(url string) error {
 
 // HttpGetWithResponse 指定のURLにGETでリクエストを行い、ステータスコード200以外の場合はエラーを返す
 func HttpGetWithResponse(url string) ([]byte, error) {
-	res, err := http.Get(url) // nolint
+	res, err := http.Get(url) //nolint
 	if err != nil {
 		return nil, err
 	}

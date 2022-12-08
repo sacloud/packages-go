@@ -256,7 +256,7 @@ func checkIPv4(ip net.IP) net.IP {
 func ipToInt(ip net.IP) (*big.Int, int) {
 	val := &big.Int{}
 	val.SetBytes([]byte(ip))
-	if len(ip) == net.IPv4len { // nolint: gocritic
+	if len(ip) == net.IPv4len { //nolint: gocritic
 		return val, 32
 	} else if len(ip) == net.IPv6len {
 		return val, 128

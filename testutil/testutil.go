@@ -44,7 +44,7 @@ func Random(strlen int, charSet string) string {
 func RandomName(prefix string, strlen int, charSet string) string {
 	result := make([]byte, strlen)
 	for i := 0; i < strlen; i++ {
-		result[i] = charSet[rand.Intn(len(charSet))] // nolint: gosec
+		result[i] = charSet[rand.Intn(len(charSet))] //nolint: gosec
 	}
 	return prefix + string(result)
 }
