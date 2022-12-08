@@ -37,7 +37,7 @@ func newTerraform() (*tfexec.Terraform, error) {
 	installTerraformOnce.Do(func() {
 		installer := &releases.ExactVersion{
 			Product: product.Terraform,
-			Version: version.Must(version.NewVersion("1.0.9")),
+			Version: version.Must(version.NewVersion("1.3.6")),
 		}
 
 		installed, err := installer.Install(context.Background())
