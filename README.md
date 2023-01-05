@@ -9,6 +9,6 @@
 
 ## License
 
-`sacloud/packages-go` Copyright (C) 2022 [The sacloud/packages-go Authors](AUTHORS).
+`sacloud/packages-go` Copyright (C) 2022-2023 [The sacloud/packages-go Authors](AUTHORS).
 
 This project is published under [Apache 2.0 License](LICENSE.txt).
