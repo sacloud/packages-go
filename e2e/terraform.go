@@ -21,7 +21,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
 	"github.com/hashicorp/hc-install/releases"
 	"github.com/hashicorp/terraform-exec/tfexec"
@@ -35,9 +34,8 @@ var (
 func newTerraform() (*tfexec.Terraform, error) {
 	var initErr error
 	installTerraformOnce.Do(func() {
-		installer := &releases.ExactVersion{
+		installer := &releases.LatestVersion{
 			Product: product.Terraform,
-			Version: version.Must(version.NewVersion("1.3.6")),
 		}
 
 		installed, err := installer.Install(context.Background())
