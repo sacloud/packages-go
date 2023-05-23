@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/hc-install v0.5.1
 	github.com/hashicorp/terraform-exec v0.18.1
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 )
 
 require (
