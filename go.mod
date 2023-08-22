@@ -3,7 +3,7 @@ module github.com/sacloud/packages-go
 go 1.21
 
 require (
-	github.com/go-playground/validator/v10 v10.15.0
+	github.com/go-playground/validator/v10 v10.15.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/hc-install v0.5.2
 	github.com/hashicorp/terraform-exec v0.18.1
