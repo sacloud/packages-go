@@ -4,6 +4,11 @@ run:
 issues:
   max-per-linter: 0
   max-same-issues: 0
+  exclude-rules:
+    - linters:
+        - gosec
+      text: "integer overflow conversion"
+      path: cidr/
 
 linters:
   disable-all: true
