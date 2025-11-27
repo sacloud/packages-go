@@ -56,6 +56,24 @@ func StringSliceFromEnv(key string, defaultValue []string) []string {
 	return values
 }
 
+// StringSliceFromEnvMulti 指定の環境変数を順番に読み取り、スライスに変換して返す。
+//
+// 読み取った環境変数の値がゼロ値の場合はdefaultValueを返す。
+// 以外の場合はカンマで区切り、半角スペースをトリムした上でスライスに格納して返す。
+func StringSliceFromEnvMulti(keys []string, defaultValue []string) []string {
+	for _, key := range keys {
+		v := os.Getenv(key)
+		if v != "" {
+			values := strings.Split(v, ",")
+			for i := range values {
+				values[i] = strings.Trim(values[i], " ")
+			}
+			return values
+		}
+	}
+	return defaultValue
+}
+
 // IntFromEnv 環境変数から指定のキーの値を読み取って返す。ゼロ値だった場合はdefaultValueを返す
 func IntFromEnv(key string, defaultValue int) int {
 	v := os.Getenv(key)
@@ -69,6 +87,21 @@ func IntFromEnv(key string, defaultValue int) int {
 	return int(i)
 }
 
+// IntFromEnvMulti 指定の環境変数を順番に読み取り、最初に見つかった非ゼロ値を返す。すべてゼロ値だった場合はdefaultValueを返す
+func IntFromEnvMulti(keys []string, defaultValue int) int {
+	for _, key := range keys {
+		v := os.Getenv(key)
+		if v != "" {
+			i, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return defaultValue
+			}
+			return int(i)
+		}
+	}
+	return defaultValue
+}
+
 // Int64FromEnv 環境変数から指定のキーの値を読み取って返す。ゼロ値だった場合はdefaultValueを返す
 func Int64FromEnv(key string, defaultValue int64) int64 {
 	v := os.Getenv(key)
@@ -80,4 +113,19 @@ func Int64FromEnv(key string, defaultValue int64) int64 {
 		return defaultValue
 	}
 	return i
+}
+
+// Int64FromEnvMulti 指定の環境変数を順番に読み取り、最初に見つかった非ゼロ値を返す。すべてゼロ値だった場合はdefaultValueを返す
+func Int64FromEnvMulti(keys []string, defaultValue int64) int64 {
+	for _, key := range keys {
+		v := os.Getenv(key)
+		if v != "" {
+			i, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return defaultValue
+			}
+			return i
+		}
+	}
+	return defaultValue
 }
