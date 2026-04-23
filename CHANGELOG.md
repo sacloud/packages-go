@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.1.0](https://github.com/sacloud/packages-go/compare/v0.0.13...v0.1.0) - 2026-04-23
+- refactor: isolate hc-install-dependent code into e2e module by @yamamoto-febc in https://github.com/sacloud/packages-go/pull/91
+- go: bump github.com/hashicorp/terraform-exec from 0.25.0 to 0.25.1 in /e2e by @dependabot[bot] in https://github.com/sacloud/packages-go/pull/93
+
 ## [v0.0.13](https://github.com/sacloud/packages-go/compare/v0.0.12...v0.0.13) - 2026-04-21
 - Update Go to 1.25 and golangci-lint to v2 by @yamamoto-febc in https://github.com/sacloud/packages-go/pull/79
 - go: bump github.com/hashicorp/hc-install from 0.6.4 to 0.9.3 by @dependabot[bot] in https://github.com/sacloud/packages-go/pull/72
