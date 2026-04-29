@@ -5,7 +5,7 @@ go 1.25.8
 toolchain go1.26.2
 
 require (
-	github.com/hashicorp/hc-install v0.9.4
+	github.com/hashicorp/hc-install v0.9.5
 	github.com/hashicorp/terraform-exec v0.25.1
 )
 
